@@ -1,6 +1,5 @@
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.util.Locale;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 /**
  * 電卓の実装と状態管理を担当するモデルクラス
@@ -156,26 +155,25 @@ public class CalculatorModel {
 	 * 設定されている演算子と数値を用いて四則演算の計算を実行します。
 	 * 
 	 * @return 計算結果の数値
-	 * @throws DivisionByZeroException 0で割る除算が行われた場合
+	 * @throws DivisionByZeroExceptiBigDecimal行われた場合
 	 */
-	public double apply() throws DivisionByZeroException {
-		double n1 = Double.parseDouble(firstNum);
-		double n2 = Double.parseDouble(secondNum);
+	public BigDecimal apply() throws DivisionByZeroException {
+		BigDecimal n1 = new BigDecimal(firstNum.replace('e', 'E'));
+		BigDecimal n2 = new BigDecimal(secondNum.replace('e', 'E'));
 
 		/** Operator イーナムで分岐する */
 		switch (operator) {
 		case ADD:
-			return n1 + n2;
+			return n1.add(n2);
 		case SUB:
-			return n1 - n2;
+			return n1.subtract(n2);
 		case MUL:
-			return n1 * n2;
+			return n1.multiply(n2);
 		case DIV:
-			/** 0除算のチェック */
-			if (n2 == 0 || n2 == 0.0) {
+			if (n2.compareTo(BigDecimal.ZERO) == 0) {
 				throw new DivisionByZeroException();
 			}
-			return n1 / n2;
+			return n1.divide(n2, 10, RoundingMode.HALF_UP);
 		default:
 			return n1;
 		}
@@ -191,7 +189,7 @@ public class CalculatorModel {
 			return firstNum;
 		}
 
-		double result = 0;
+		BigDecimal result = BigDecimal.ZERO;
 		try {
 			result = apply();
 		} catch (DivisionByZeroException e) {
@@ -203,41 +201,9 @@ public class CalculatorModel {
 			return firstNum;
 		}
 
-		/**　9桁を超える場合（または非常に小さい場合）の指数表記変換 */
-		String resultStr;
+		/** FormatterUtil を経由して指数表記と通常表記を切り替える */
+		firstNum = FormatterUtil.formatResult(result, maxDigits);
 
-		if (Math.abs(result) >= Math.pow(10, maxDigits) || (result != 0 && Math.abs(result) < 1e-7)) {
-			/** Locale.US を指定することで、環境によって小数点の文字（, や .）が変わるのを防ぎます */
-			DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
-			DecimalFormat decimalformat = new DecimalFormat("0.0000000E0", symbols);
-
-			resultStr = decimalformat.format(result).replace('E', 'e');
-
-			if (resultStr.contains("e")) {
-				String[] parts = resultStr.split("e");
-				String base = parts[0];
-				String exp = parts[1];
-
-				/** 末尾の不要な ".0" や "0" をトリムする */
-				if (base.contains(".")) {
-					/** 整数値として扱える場合（例: 10.0 -> 10　／　10.500 -> 10.5) */
-					base = base.replaceAll("0+$", "");
-					if (base.endsWith(".")) {
-						base += "0";
-					}
-				}
-				resultStr = base + "e" + exp;
-			}
-		} else {
-			resultStr = String.valueOf(result);
-			if (resultStr.contains(".")) {
-				resultStr = resultStr.replaceAll("0+$", "");
-				resultStr = resultStr.replaceAll("\\.$", "");
-			}
-		}
-
-		/** 計算結果を firstNum に戻して再利用可能にする */
-		firstNum = resultStr;
 		secondNum = "";
 		operator = null; /** リセット時は null にする */
 		state = InputState.AFTER_RESULT;
