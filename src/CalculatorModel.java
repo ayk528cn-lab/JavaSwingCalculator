@@ -23,6 +23,10 @@ public class CalculatorModel {
 	 * @return　入力が成功した場合は true、桁数オーバーや無効な場合は false
 	 */
 	public boolean appendDigit(char ch) {
+		if (state == InputState.ERROR) {
+			return false;
+		}
+		
 		prepareForInput();
 
 		String target = (operator == null) ? firstNum : secondNum;
@@ -54,6 +58,10 @@ public class CalculatorModel {
 	 * @return　小数点の追加に成功した場合は true、すでに含まれている場合や桁数オーバーは　false
 	 */
 	public boolean appendDot() {
+		if (state == InputState.ERROR) {
+			return false;
+		}
+		
 		prepareForInput();
 
 		String target = (operator == null) ? firstNum : secondNum;
