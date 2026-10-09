@@ -111,8 +111,15 @@ public class CalculatorModel {
 	 */
 	public boolean setOperator(String op) {
 		if (state == InputState.ERROR) {
+			if (op.equals("-")) {
+				clearAll();
+				firstNum = "";
+				state = InputState.INPUT_NUMBER;
+				return true;
+			}
 			return false;
 		}
+		
 		if (state == InputState.AFTER_RESULT) {
 			state = InputState.INPUT_NUMBER;
 		}
