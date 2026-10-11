@@ -1,4 +1,5 @@
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
@@ -44,10 +45,26 @@ public class FormatterUtil {
 				}
 			}
 		} else {
-			resultStr = result.toPlainString();
-			if (resultStr.contains(".")) {
-				resultStr = resultStr.replaceAll("0+$", "");
-				resultStr = resultStr.replaceAll("\\.$", "");
+			int integerDigits = result.toBigInteger().abs().toString().length();
+			if (result.compareTo(BigDecimal.ZERO) == 0) {
+				integerDigits = 1;
+			}
+
+			if (integerDigits >= maxDigits) {
+				result = result.setScale(0, RoundingMode.DOWN);
+				resultStr = result.toPlainString();
+			} else {
+				int allowedScale = maxDigits - integerDigits - (result.toPlainString().contains(".") ? 1 : 0);
+				if (allowedScale < 0)
+					allowedScale = 0;
+
+				result = result.setScale(allowedScale, RoundingMode.DOWN);
+				resultStr = result.toPlainString();
+
+				if (resultStr.contains(".")) {
+					resultStr = resultStr.replaceAll("0+$", "");
+					resultStr = resultStr.replaceAll("\\.$", "");
+				}
 			}
 		}
 		return resultStr.replace("E", "e");

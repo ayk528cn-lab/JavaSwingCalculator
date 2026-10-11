@@ -26,7 +26,7 @@ public class CalculatorModel {
 		if (state == InputState.ERROR) {
 			return false;
 		}
-		
+
 		prepareForInput();
 
 		String target = (operator == null) ? firstNum : secondNum;
@@ -36,6 +36,27 @@ public class CalculatorModel {
 		}
 		if (target.equals("-0") && ch == '0') {
 			return false;
+		}
+
+		if (target.equals("0")) {
+			if (operator == null) {
+				firstNum = String.valueOf(ch);
+			} else {
+				secondNum = String.valueOf(ch);
+			}
+			state = InputState.INPUT_NUMBER;
+			return true;
+		}
+
+		// ★追加： 「-0」の状態で「0」以外の数字が押された場合は、置き換える（例: "-0" + "1" -> "-1"）
+		if (target.equals("-0")) {
+			if (operator == null) {
+				firstNum = "-" + ch;
+			} else {
+				secondNum = "-" + ch;
+			}
+			state = InputState.INPUT_NUMBER;
+			return true;
 		}
 
 		int effectiveLength = target.startsWith("-") ? target.length() - 1 : target.length();
@@ -61,7 +82,7 @@ public class CalculatorModel {
 		if (state == InputState.ERROR) {
 			return false;
 		}
-		
+
 		prepareForInput();
 
 		String target = (operator == null) ? firstNum : secondNum;
@@ -119,7 +140,7 @@ public class CalculatorModel {
 			}
 			return false;
 		}
-		
+
 		if (state == InputState.AFTER_RESULT) {
 			state = InputState.INPUT_NUMBER;
 		}
@@ -128,6 +149,37 @@ public class CalculatorModel {
 		if (firstNum.equals("-") || secondNum.equals("-")) {
 			return false;
 		}
+
+		/** 「0.」や「0.0」「0.00」などの状態で演算子が押されたら無視する */
+		String targetCheck = (operator == null) ? firstNum : secondNum;
+		if (targetCheck.equals("0.") || targetCheck.matches("^0\\.0+$")) {
+			return false;
+		}
+
+		/** 既に1つ目の数字と演算子が決まっていて、2つ目の数字がまだ押されていない状態で、更に演算子が押されたとき演算子を上書きする */
+		if (!firstNum.isEmpty() && operator != null && secondNum.isEmpty()) {
+			Operator newOp = null;
+			switch (op) {
+			case "+":
+				newOp = Operator.ADD;
+				break;
+			case "-":
+				newOp = Operator.SUB;
+				break;
+			case "×":
+				newOp = Operator.MUL;
+				break;
+			case "÷":
+				newOp = Operator.DIV;
+				break;
+			default:
+				return false;
+			}
+			this.operator = newOp;
+			state = InputState.INPUT_OPERATOR;
+			return true;
+		}
+
 		/** 最初が空または "0" のとき、"-" なら負号（マイナス）として受け付ける */
 		if (firstNum.isEmpty() || firstNum.equals("0")) {
 			if (op.equals("-")) {
@@ -138,6 +190,17 @@ public class CalculatorModel {
 				return false;
 			}
 		}
+
+		if (operator == null) {
+			if (firstNum.endsWith(".")) {
+				firstNum = firstNum.substring(0, firstNum.length() - 1);
+			}
+		} else {
+			if (secondNum.endsWith(".")) {
+				secondNum = secondNum.substring(0, secondNum.length() - 1);
+			}
+		}
+
 		/** すでに数式（1つ目の数字、演算子、2つ目の数字）が揃っている状態で演算子が押された場合、一度中間計算を行う */
 		if (!firstNum.isEmpty() && !secondNum.isEmpty() && operator != null) {
 			calculate();
@@ -188,7 +251,7 @@ public class CalculatorModel {
 			if (n2.compareTo(BigDecimal.ZERO) == 0) {
 				throw new DivisionByZeroException();
 			}
-			return n1.divide(n2, 10, RoundingMode.HALF_UP);
+			return n1.divide(n2, new java.math.MathContext(maxDigits, RoundingMode.DOWN));
 		default:
 			return n1;
 		}
