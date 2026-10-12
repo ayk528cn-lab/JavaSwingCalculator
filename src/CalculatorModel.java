@@ -87,6 +87,10 @@ public class CalculatorModel {
 
 		String target = (operator == null) ? firstNum : secondNum;
 
+		if (target.equals("-")) {
+			return false;
+		}
+
 		/** 1. すでに小数点が入力されている場合は追加しない */
 		if (target.contains(".")) {
 			return false;
@@ -152,8 +156,24 @@ public class CalculatorModel {
 
 		/** 「0.」や「0.0」「0.00」などの状態で演算子が押されたら無視する */
 		String targetCheck = (operator == null) ? firstNum : secondNum;
-		if (targetCheck.equals("0.") || targetCheck.matches("^0\\.0+$")) {
-			return false;
+		if (targetCheck.matches("^0\\.0*$")) {
+			if (op.equals("-")) {
+				if (operator == null) {
+					firstNum = "-";
+				} else {
+					secondNum = "-";
+				}
+				state = InputState.INPUT_NUMBER;
+				return true;
+			} else {
+				if (operator == null) {
+					firstNum = "";
+				} else {
+					secondNum = "";
+				}
+				state = InputState.INPUT_NUMBER;
+				return true;
+			}
 		}
 
 		/** 既に1つ目の数字と演算子が決まっていて、2つ目の数字がまだ押されていない状態で、更に演算子が押されたとき演算子を上書きする */
@@ -179,7 +199,6 @@ public class CalculatorModel {
 			state = InputState.INPUT_OPERATOR;
 			return true;
 		}
-
 		/** 最初が空または "0" のとき、"-" なら負号（マイナス）として受け付ける */
 		if (firstNum.isEmpty() || firstNum.equals("0")) {
 			if (op.equals("-")) {
