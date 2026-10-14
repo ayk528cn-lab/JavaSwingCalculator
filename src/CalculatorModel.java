@@ -82,6 +82,10 @@ public class CalculatorModel {
 		if (state == InputState.ERROR) {
 			return false;
 		}
+		
+		if (operator != null && secondNum.isEmpty()) {
+			return false;
+		}
 
 		prepareForInput();
 
