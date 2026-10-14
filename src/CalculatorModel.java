@@ -16,6 +16,8 @@ public class CalculatorModel {
 	private ErrorHandler errorHandler = new ErrorHandler();
 	private static final int maxDigits = 8;
 
+	private boolean justCleared = true;
+
 	/**
 	 * 数字（0〜9）が入力されたときの処理を行います。
 	 * 
@@ -82,8 +84,8 @@ public class CalculatorModel {
 		if (state == InputState.ERROR) {
 			return false;
 		}
-		
-		if (operator != null && secondNum.isEmpty()) {
+
+		if (justCleared || (operator != null && secondNum.isEmpty())) {
 			return false;
 		}
 
@@ -319,6 +321,7 @@ public class CalculatorModel {
 		this.secondNum = "";
 		this.operator = null;
 		this.state = InputState.READY;
+		this.justCleared = true;
 		errorHandler.allClear();
 	}
 
@@ -353,6 +356,7 @@ public class CalculatorModel {
 		} else if (state == InputState.READY || state == InputState.INPUT_OPERATOR) {
 			state = InputState.INPUT_NUMBER;
 		}
+		justCleared = false;
 	}
 
 	/**
