@@ -35,11 +35,8 @@ public class FormatterUtil {
 
 					/** 末尾の不要な ".0" や "0" をトリムする */
 					if (base.contains(".")) {
-						/** 整数値として扱える場合（例: 10.0 -> 10　／　10.500 -> 10.5) */
-						base = base.replaceAll("0+$", "");
-						if (base.endsWith(".")) {
-							base += "0";
-						}
+						base = base.replaceAll("0+$", ""); // 末尾の0を消す
+						base = base.replaceAll("\\.$", ""); // 末尾の.を消す
 					}
 					resultStr = base + "e" + exp;
 				}
