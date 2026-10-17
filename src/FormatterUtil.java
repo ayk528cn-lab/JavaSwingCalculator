@@ -51,7 +51,7 @@ public class FormatterUtil {
 				result = result.setScale(0, RoundingMode.DOWN);
 				resultStr = result.toPlainString();
 			} else {
-				int allowedScale = maxDigits - integerDigits - (result.toPlainString().contains(".") ? 1 : 0);
+				int allowedScale = maxDigits;
 				if (allowedScale < 0)
 					allowedScale = 0;
 
