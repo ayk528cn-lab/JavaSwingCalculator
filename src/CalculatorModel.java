@@ -50,7 +50,7 @@ public class CalculatorModel {
 			return true;
 		}
 
-		// ★追加： 「-0」の状態で「0」以外の数字が押された場合は、置き換える（例: "-0" + "1" -> "-1"）
+		/** 「-0」の状態で「0」以外の数字が押された場合は、置き換える（例: "-0" + "1" -> "-1"） */
 		if (target.equals("-0")) {
 			if (operator == null) {
 				firstNum = "-" + ch;
@@ -61,7 +61,7 @@ public class CalculatorModel {
 			return true;
 		}
 
-		int effectiveLength = target.startsWith("-") ? target.length() - 1 : target.length();
+		int effectiveLength = target.replace("-", "").replace(".", "").length();
 		if (effectiveLength >= maxDigits) {
 			return false;
 		}
@@ -85,7 +85,11 @@ public class CalculatorModel {
 			return false;
 		}
 
-		if (justCleared || (operator != null && secondNum.isEmpty())) {
+		if (justCleared) {
+			return false;
+		}
+
+		if (operator != null && secondNum.isEmpty()) {
 			return false;
 		}
 
@@ -101,8 +105,9 @@ public class CalculatorModel {
 		if (target.contains(".")) {
 			return false;
 		}
-		/** 2. 桁数制限を確認（小数点も1桁としてカウントする場合）*/
-		int effectiveLength = target.startsWith("-") ? target.length() - 1 : target.length();
+
+		/** 2. 桁数制限を確認 */
+		int effectiveLength = target.replace("-", "").replace(".", "").length();
 		if (effectiveLength >= maxDigits) {
 			return false;
 		}
@@ -142,12 +147,6 @@ public class CalculatorModel {
 	 */
 	public boolean setOperator(String op) {
 		if (state == InputState.ERROR) {
-			if (op.equals("-")) {
-				clearAll();
-				firstNum = "";
-				state = InputState.INPUT_NUMBER;
-				return true;
-			}
 			return false;
 		}
 
@@ -163,23 +162,7 @@ public class CalculatorModel {
 		/** 「0.」や「0.0」「0.00」などの状態で演算子が押されたら無視する */
 		String targetCheck = (operator == null) ? firstNum : secondNum;
 		if (targetCheck.matches("^0\\.0*$")) {
-			if (op.equals("-")) {
-				if (operator == null) {
-					firstNum = "-";
-				} else {
-					secondNum = "-";
-				}
-				state = InputState.INPUT_NUMBER;
-				return true;
-			} else {
-				if (operator == null) {
-					firstNum = "";
-				} else {
-					secondNum = "";
-				}
-				state = InputState.INPUT_NUMBER;
-				return true;
-			}
+			return true;
 		}
 
 		/** 既に1つ目の数字と演算子が決まっていて、2つ目の数字がまだ押されていない状態で、更に演算子が押されたとき演算子を上書きする */
