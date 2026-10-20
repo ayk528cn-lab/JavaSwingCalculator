@@ -15,6 +15,9 @@ public class CalculatorModel {
 
 	private ErrorHandler errorHandler = new ErrorHandler();
 	private static final int maxDigits = 8;
+	
+	/** 内部計算用の十分な精度（スケール）を定数として定義する */
+    private static final int INTERNAL_CALCULATION_SCALE = 30;
 
 	private boolean justCleared = true;
 
@@ -259,7 +262,7 @@ public class CalculatorModel {
 			if (n2.compareTo(BigDecimal.ZERO) == 0) {
 				throw new DivisionByZeroException();
 			}
-			return n1.divide(n2, new java.math.MathContext(maxDigits, RoundingMode.DOWN));
+			return n1.divide(n2, INTERNAL_CALCULATION_SCALE, RoundingMode.DOWN);
 		default:
 			return n1;
 		}

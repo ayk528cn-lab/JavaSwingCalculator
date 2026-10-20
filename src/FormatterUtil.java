@@ -33,11 +33,6 @@ public class FormatterUtil {
 					String base = parts[0];
 					String exp = parts[1];
 
-					/** 末尾の不要な ".0" や "0" をトリムする */
-					if (base.contains(".")) {
-						base = base.replaceAll("0+$", ""); // 末尾の0を消す
-						base = base.replaceAll("\\.$", ""); // 末尾の.を消す
-					}
 					resultStr = base + "e" + exp;
 				}
 			}
@@ -51,7 +46,7 @@ public class FormatterUtil {
 				result = result.setScale(0, RoundingMode.DOWN);
 				resultStr = result.toPlainString();
 			} else {
-				int allowedScale = maxDigits;
+				int allowedScale = maxDigits - integerDigits;
 				if (allowedScale < 0)
 					allowedScale = 0;
 
