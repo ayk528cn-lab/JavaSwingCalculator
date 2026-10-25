@@ -44,9 +44,8 @@ public class CalculatorController {
 	 * @param op 選択された演算子の文字列
 	 */
 	public void onOperator(String op) {
-		if (model.setOperator(op)) {
-			frame.setDisplay(model.getDisplayText());
-		}
+		model.setOperator(op);
+		frame.setDisplay(model.getDisplayText());
 	}
 
 	/**
