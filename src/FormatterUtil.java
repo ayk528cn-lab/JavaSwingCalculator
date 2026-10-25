@@ -54,8 +54,9 @@ public class FormatterUtil {
 				resultStr = result.toPlainString();
 
 				if (resultStr.contains(".")) {
-					resultStr = resultStr.replaceAll("0+$", "");
-					resultStr = resultStr.replaceAll("\\.$", "");
+					if (result.remainder(BigDecimal.ONE).compareTo(BigDecimal.ZERO) == 0) {
+						resultStr = result.toBigInteger().toString();
+					}
 				}
 			}
 		}

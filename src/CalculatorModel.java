@@ -15,13 +15,11 @@ public class CalculatorModel {
 
 	private ErrorHandler errorHandler = new ErrorHandler();
 	private static final int MAX_DIGITS = 8;
-	
+
 	/** 内部計算用の十分な精度（スケール）を定数として定義する */
-    private static final int INTERNAL_CALCULATION_SCALE = 30;
+	private static final int INTERNAL_CALCULATION_SCALE = 30;
 
 	private boolean isJustCleared = true;
-	
-	
 
 	/**
 	 * 数字（0〜9）が入力されたときの処理を行います。
@@ -41,7 +39,7 @@ public class CalculatorModel {
 		if (target.equals("0") && ch == '0') {
 			return false;
 		}
-		
+
 		if (target.equals("-0")) {
 			return false;
 		}
@@ -83,7 +81,7 @@ public class CalculatorModel {
 		if (state == InputState.AFTER_RESULT) {
 			return false;
 		}
-		
+
 		if (operator != null && rightOperand.isEmpty()) {
 			return false;
 		}
@@ -144,7 +142,7 @@ public class CalculatorModel {
 		if (leftOperand.equals("-") || rightOperand.equals("-") || leftOperand.equals("-0") && rightOperand.isEmpty()) {
 			return false;
 		}
-		
+
 		if (!rightOperand.isEmpty() && (rightOperand.equals("-") || rightOperand.equals("-0"))) {
 			return false;
 		}
@@ -152,34 +150,34 @@ public class CalculatorModel {
 		/** すでに数式（1つ目の数字、演算子、2つ目の数字）が揃っている状態で演算子が押された場合、一度中間計算を行う */
 		if (!leftOperand.isEmpty() && !rightOperand.isEmpty() && operator != null) {
 			calculate();
-			
+
 			if (state == InputState.ERROR) {
 				return false;
 			}
-		
-		/** 「0.」や「0.0」「0.00」などの状態で演算子が押されたら無視する */
-		//String targetCheck = (operator == null) ? leftOperand : rightOperand;
-		//if (targetCheck.matches("^0\\.0*$")) {
-			//return true;
-		//}
 
-		/** 既に1つ目の数字と演算子が決まっていて、2つ目の数字がまだ押されていない状態で、更に演算子が押されたとき演算子を上書きする */
-		//if (!leftOperand.isEmpty() && operator != null && rightOperand.isEmpty()) {
+			/** 「0.」や「0.0」「0.00」などの状態で演算子が押されたら無視する */
+			//String targetCheck = (operator == null) ? leftOperand : rightOperand;
+			//if (targetCheck.matches("^0\\.0*$")) {
+			//return true;
+			//}
+
+			/** 既に1つ目の数字と演算子が決まっていて、2つ目の数字がまだ押されていない状態で、更に演算子が押されたとき演算子を上書きする */
+			//if (!leftOperand.isEmpty() && operator != null && rightOperand.isEmpty()) {
 			Operator newOp = parseOperator(op);
 			if (newOp == null) {
 				return false;
 			}
-			
+
 			this.operator = newOp;
 			state = InputState.INPUT_OPERATOR;
 			return true;
 		}
 		/** 最初が空または "0" のとき、"-" なら負号（マイナス）として受け付ける */
 		if (leftOperand.isEmpty() || leftOperand.equals("0")) {
-		if (operator != null) {
-			return false;
-		}
-		
+			if (operator != null) {
+				return false;
+			}
+
 			if (op.equals("-")) {
 				leftOperand = "-";
 				state = InputState.INPUT_NUMBER;
@@ -199,13 +197,12 @@ public class CalculatorModel {
 			}
 		}
 
-		
 		/** 文字列の演算子を Operator 列挙型に変換 */
 		Operator newOp = parseOperator(op);
 		if (newOp == null) {
 			return false;
 		}
-		
+
 		this.operator = newOp;
 		state = InputState.INPUT_OPERATOR;
 		return true;
@@ -248,7 +245,7 @@ public class CalculatorModel {
 		if (state == InputState.ERROR) {
 			return errorHandler.getErrorMessage();
 		}
-		
+
 		if (leftOperand.isEmpty() || rightOperand.isEmpty() || operator == null) {
 			return leftOperand;
 		}
@@ -340,7 +337,7 @@ public class CalculatorModel {
 			return "";
 		}
 	}
-	
+
 	/**
 	 * 文字列の演算子を Operator 列挙型に変換します。
 	 * 
