@@ -147,6 +147,20 @@ public class CalculatorModel {
 			return false;
 		}
 
+		/** 「0.」や「0.0」「0.00」などの状態で演算子が押されたら無視する */
+		String currentTarget = (operator == null) ? leftOperand : rightOperand;
+		if (currentTarget.matches("^0(\\.0*)?$") || currentTarget.matches("^-\\s*0(\\.0*)?$")) {
+			// 演算子がマイナスで、まだ左オペランドが単なる「0」かつ演算子が未設定の場合は「-0」などの負号入力を許可する
+			if (op.equals("-") && operator == null && (currentTarget.equals("0") || currentTarget.isEmpty())) {
+				if (currentTarget.isEmpty() || currentTarget.equals("0")) {
+					leftOperand = "-";
+					state = InputState.INPUT_NUMBER;
+					return true;
+				}
+				}
+			return false;
+		}
+			
 		/** すでに数式（1つ目の数字、演算子、2つ目の数字）が揃っている状態で演算子が押された場合、一度中間計算を行う */
 		if (!leftOperand.isEmpty() && !rightOperand.isEmpty() && operator != null) {
 			calculate();
@@ -154,13 +168,7 @@ public class CalculatorModel {
 			if (state == InputState.ERROR) {
 				return false;
 			}
-
-			/** 「0.」や「0.0」「0.00」などの状態で演算子が押されたら無視する */
-			//String targetCheck = (operator == null) ? leftOperand : rightOperand;
-			//if (targetCheck.matches("^0\\.0*$")) {
-			//return true;
-			//}
-
+	
 			/** 既に1つ目の数字と演算子が決まっていて、2つ目の数字がまだ押されていない状態で、更に演算子が押されたとき演算子を上書きする */
 			//if (!leftOperand.isEmpty() && operator != null && rightOperand.isEmpty()) {
 			Operator newOp = parseOperator(op);
@@ -172,6 +180,7 @@ public class CalculatorModel {
 			state = InputState.INPUT_OPERATOR;
 			return true;
 		}
+		
 		/** 最初が空または "0" のとき、"-" なら負号（マイナス）として受け付ける */
 		if (leftOperand.isEmpty() || leftOperand.equals("0")) {
 			if (operator != null) {
