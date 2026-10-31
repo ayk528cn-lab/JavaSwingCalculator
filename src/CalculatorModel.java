@@ -19,8 +19,6 @@ public class CalculatorModel {
 	/** 内部計算用の十分な精度（スケール）を定数として定義する */
 	private static final int INTERNAL_CALCULATION_SCALE = 30;
 
-	private boolean isJustCleared = true;
-
 	/**
 	 * 数字（0〜9）が入力されたときの処理を行います。
 	 * 
@@ -100,8 +98,8 @@ public class CalculatorModel {
 		}
 
 		/** 2. 桁数制限を確認 */
-		int effectiveLength = target.replace("-", "").replace(".", "").length();
-		if (effectiveLength >= MAX_DIGITS) {
+		int digitCount = target.replace("-", "").replace(".", "").length();
+		if (digitCount >= MAX_DIGITS) {
 			return false;
 		}
 
@@ -134,6 +132,11 @@ public class CalculatorModel {
 			return false;
 		}
 
+		Operator newOp = parseOperator(op);
+		if (newOp == null) {
+			return false;
+		}
+		
 		if (state == InputState.AFTER_RESULT) {
 			state = InputState.INPUT_NUMBER;
 		}
@@ -147,20 +150,6 @@ public class CalculatorModel {
 			return false;
 		}
 
-		/** 「0.」や「0.0」「0.00」などの状態で演算子が押されたら無視する */
-		String currentTarget = (operator == null) ? leftOperand : rightOperand;
-		if (currentTarget.matches("^0(\\.0*)?$") || currentTarget.matches("^-\\s*0(\\.0*)?$")) {
-			// 演算子がマイナスで、まだ左オペランドが単なる「0」かつ演算子が未設定の場合は「-0」などの負号入力を許可する
-			if (op.equals("-") && operator == null && (currentTarget.equals("0") || currentTarget.isEmpty())) {
-				if (currentTarget.isEmpty() || currentTarget.equals("0")) {
-					leftOperand = "-";
-					state = InputState.INPUT_NUMBER;
-					return true;
-				}
-				}
-			return false;
-		}
-			
 		/** すでに数式（1つ目の数字、演算子、2つ目の数字）が揃っている状態で演算子が押された場合、一度中間計算を行う */
 		if (!leftOperand.isEmpty() && !rightOperand.isEmpty() && operator != null) {
 			calculate();
@@ -168,11 +157,16 @@ public class CalculatorModel {
 			if (state == InputState.ERROR) {
 				return false;
 			}
-	
-			/** 既に1つ目の数字と演算子が決まっていて、2つ目の数字がまだ押されていない状態で、更に演算子が押されたとき演算子を上書きする */
-			//if (!leftOperand.isEmpty() && operator != null && rightOperand.isEmpty()) {
-			Operator newOp = parseOperator(op);
-			if (newOp == null) {
+
+			/** 「0.」や「0.0」「0.00」などの状態で演算子が押されたら無視する */
+			String currentTarget = (operator == null) ? leftOperand : rightOperand;
+			if (currentTarget.matches("^0(\\.0*)?$") || currentTarget.matches("^-\\s*0(\\.0*)?$")) {
+				// 演算子がマイナスで、まだ左オペランドが単なる「0」かつ演算子が未設定の場合は「-0」などの負号入力を許可する
+				if (op.equals("-") && operator == null && (currentTarget.equals("0") || currentTarget.isEmpty())) {
+					leftOperand = "-";
+					state = InputState.INPUT_NUMBER;
+					return true;
+				}
 				return false;
 			}
 
@@ -180,7 +174,7 @@ public class CalculatorModel {
 			state = InputState.INPUT_OPERATOR;
 			return true;
 		}
-		
+
 		/** 最初が空または "0" のとき、"-" なら負号（マイナス）として受け付ける */
 		if (leftOperand.isEmpty() || leftOperand.equals("0")) {
 			if (operator != null) {
@@ -206,12 +200,6 @@ public class CalculatorModel {
 			}
 		}
 
-		/** 文字列の演算子を Operator 列挙型に変換 */
-		Operator newOp = parseOperator(op);
-		if (newOp == null) {
-			return false;
-		}
-
 		this.operator = newOp;
 		state = InputState.INPUT_OPERATOR;
 		return true;
@@ -224,24 +212,24 @@ public class CalculatorModel {
 	 * @throws DivisionByZeroException 除数が0の場合
 	 */
 	public BigDecimal apply() throws DivisionByZeroException {
-		BigDecimal n1 = new BigDecimal(leftOperand.replace('e', 'E'));
-		BigDecimal n2 = new BigDecimal(rightOperand.replace('e', 'E'));
+		BigDecimal leftValue = new BigDecimal(leftOperand.replace('e', 'E'));
+		BigDecimal rightValue = new BigDecimal(rightOperand.replace('e', 'E'));
 
 		/** Operator イーナムで分岐する */
 		switch (operator) {
 		case ADD:
-			return n1.add(n2);
+			return leftValue.add(rightValue);
 		case SUB:
-			return n1.subtract(n2);
+			return leftValue.subtract(rightValue);
 		case MUL:
-			return n1.multiply(n2);
+			return leftValue.multiply(rightValue);
 		case DIV:
-			if (n2.compareTo(BigDecimal.ZERO) == 0) {
+			if (rightValue.compareTo(BigDecimal.ZERO) == 0) {
 				throw new DivisionByZeroException();
 			}
-			return n1.divide(n2, INTERNAL_CALCULATION_SCALE, RoundingMode.DOWN);
+			return leftValue.divide(rightValue, INTERNAL_CALCULATION_SCALE, RoundingMode.DOWN);
 		default:
-			return n1;
+			return leftValue;
 		}
 	}
 
@@ -288,7 +276,6 @@ public class CalculatorModel {
 		this.rightOperand = "";
 		this.operator = null;
 		this.state = InputState.READY;
-		this.isJustCleared = true;
 		errorHandler.allClear();
 	}
 
@@ -304,14 +291,14 @@ public class CalculatorModel {
 		if (operator == null) {
 			return leftOperand.isEmpty() ? "0" : leftOperand;
 		}
-		String opStr = getOperatorSymbol(operator);
+		String operatorSymbol = getOperatorSymbol(operator);
 		/** 記号に変換する */
 		/** 演算子が入力された状態で、２番目の数字が空の場合 */
 		if (rightOperand.isEmpty()) {
-			return leftOperand + " " + opStr;
+			return leftOperand + " " + operatorSymbol;
 		}
 		/** 演算子と２番目の数字がある場合 */
-		return leftOperand + " " + opStr + " " + rightOperand;
+		return leftOperand + " " + operatorSymbol + " " + rightOperand;
 	}
 
 	/**
@@ -323,7 +310,6 @@ public class CalculatorModel {
 		} else if (state == InputState.READY || state == InputState.INPUT_OPERATOR) {
 			state = InputState.INPUT_NUMBER;
 		}
-		isJustCleared = false;
 	}
 
 	/**
