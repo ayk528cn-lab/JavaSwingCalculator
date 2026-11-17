@@ -136,7 +136,7 @@ public class CalculatorModel {
 		if (newOp == null) {
 			return false;
 		}
-		
+
 		if (state == InputState.AFTER_RESULT) {
 			state = InputState.INPUT_NUMBER;
 		}
@@ -162,16 +162,16 @@ public class CalculatorModel {
 			state = InputState.INPUT_OPERATOR;
 			return true;
 		}
-			/** 「0.」や「0.0」「0.00」などの状態で演算子が押されたら無視する */
-			String currentTarget = (operator == null) ? leftOperand : rightOperand;
-			if (currentTarget.matches("^0(\\.0*)?$") || currentTarget.matches("^-\\s*0(\\.0*)?$")) {
-				if (op.equals("-") && operator == null && (currentTarget.equals("0") || currentTarget.isEmpty())) {
-					leftOperand = "-";
-					state = InputState.INPUT_NUMBER;
-					return true;
-				}
-				return false;
+		/** 「0.」や「0.0」「0.00」などの状態で演算子が押されたら無視する */
+		String currentTarget = (operator == null) ? leftOperand : rightOperand;
+		if (currentTarget.matches("^0(\\.0*)?$") || currentTarget.matches("^-\\s*0(\\.0*)?$")) {
+			if (op.equals("-") && operator == null && (currentTarget.equals("0") || currentTarget.isEmpty())) {
+				leftOperand = "-";
+				state = InputState.INPUT_NUMBER;
+				return true;
 			}
+			return false;
+		}
 
 		/** 最初が空または "0" のとき、"-" なら負号（マイナス）として受け付ける */
 		if (leftOperand.isEmpty() || leftOperand.equals("0")) {
