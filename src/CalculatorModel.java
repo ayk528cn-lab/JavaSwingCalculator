@@ -158,10 +158,13 @@ public class CalculatorModel {
 				return false;
 			}
 
+			this.operator = newOp;
+			state = InputState.INPUT_OPERATOR;
+			return true;
+		}
 			/** 「0.」や「0.0」「0.00」などの状態で演算子が押されたら無視する */
 			String currentTarget = (operator == null) ? leftOperand : rightOperand;
 			if (currentTarget.matches("^0(\\.0*)?$") || currentTarget.matches("^-\\s*0(\\.0*)?$")) {
-				// 演算子がマイナスで、まだ左オペランドが単なる「0」かつ演算子が未設定の場合は「-0」などの負号入力を許可する
 				if (op.equals("-") && operator == null && (currentTarget.equals("0") || currentTarget.isEmpty())) {
 					leftOperand = "-";
 					state = InputState.INPUT_NUMBER;
@@ -169,11 +172,6 @@ public class CalculatorModel {
 				}
 				return false;
 			}
-
-			this.operator = newOp;
-			state = InputState.INPUT_OPERATOR;
-			return true;
-		}
 
 		/** 最初が空または "0" のとき、"-" なら負号（マイナス）として受け付ける */
 		if (leftOperand.isEmpty() || leftOperand.equals("0")) {
@@ -218,18 +216,18 @@ public class CalculatorModel {
 		/** Operator イーナムで分岐する */
 		switch (operator) {
 		case ADD:
-			return leftValue.add(rightValue);
+			return leftValue.add(rightValue).setScale(INTERNAL_CALCULATION_SCALE, RoundingMode.DOWN);
 		case SUB:
-			return leftValue.subtract(rightValue);
+			return leftValue.subtract(rightValue).setScale(INTERNAL_CALCULATION_SCALE, RoundingMode.DOWN);
 		case MUL:
-			return leftValue.multiply(rightValue);
+			return leftValue.multiply(rightValue).setScale(INTERNAL_CALCULATION_SCALE, RoundingMode.DOWN);
 		case DIV:
 			if (rightValue.compareTo(BigDecimal.ZERO) == 0) {
 				throw new DivisionByZeroException();
 			}
 			return leftValue.divide(rightValue, INTERNAL_CALCULATION_SCALE, RoundingMode.DOWN);
 		default:
-			return leftValue;
+			return leftValue.setScale(INTERNAL_CALCULATION_SCALE, RoundingMode.DOWN);
 		}
 	}
 

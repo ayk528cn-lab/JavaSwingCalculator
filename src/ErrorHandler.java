@@ -12,7 +12,9 @@ public class ErrorHandler {
 	 */
 	public void handle(Exception e) {
 		hasError = true;
+
 		if (e instanceof DivisionByZeroException) {
+			System.err.println("エラーが発生しました。");
 			errorMessage = e.getMessage();
 		} else {
 			errorMessage = "エラー";

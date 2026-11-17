@@ -17,11 +17,11 @@ public class FormatterUtil {
 		/**　9桁を超える場合（または非常に小さい場合）の指数表記変換 */
 		String resultStr;
 		BigDecimal thresholdHigh = BigDecimal.valueOf(Math.pow(10, maxDigits));
-		BigDecimal thresholdLow = new BigDecimal("1e-7");
+		BigDecimal thresholdLow = new BigDecimal("1e-1");
 
 		if (result.abs().compareTo(thresholdHigh) >= 0
 				|| (result.compareTo(BigDecimal.ZERO) != 0 && result.abs().compareTo(thresholdLow) < 0)) {
-			/** Locale.US を指定することで、環境によって小数点の文字（, や .）が変わるのを防ぎます */
+			/** Locale.US を指定することで、環境によって小数点の文字（, や .）が変わるのを防ぐ */
 			DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
 			DecimalFormat decimalformat = new DecimalFormat("0.0000000E0", symbols);
 
@@ -51,12 +51,10 @@ public class FormatterUtil {
 					allowedScale = 0;
 
 				result = result.setScale(allowedScale, RoundingMode.DOWN);
-				resultStr = result.toPlainString();
+				resultStr = result.stripTrailingZeros().toPlainString();
 
-				if (resultStr.contains(".")) {
-					if (result.remainder(BigDecimal.ONE).compareTo(BigDecimal.ZERO) == 0) {
-						resultStr = result.toBigInteger().toString();
-					}
+				if (resultStr.contains("e") || resultStr.contains("E")) {
+					resultStr = result.toPlainString();
 				}
 			}
 		}
