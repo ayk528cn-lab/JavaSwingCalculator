@@ -37,6 +37,13 @@ public class FormatterUtil {
 				}
 			}
 		} else {
+			BigDecimal exactValue = result.stripTrailingZeros();
+			String exactPlain = exactValue.toPlainString();
+			int exactDigits = exactPlain.replace("-", "").replace(".", "").length();
+			if (!exactPlain.contains("e") && !exactPlain.contains("E") && exactDigits <= maxDigits) {
+				return exactPlain;
+			}
+			
 			int integerDigits = result.toBigInteger().abs().toString().length();
 			if (result.compareTo(BigDecimal.ZERO) == 0) {
 				integerDigits = 1;
@@ -51,7 +58,7 @@ public class FormatterUtil {
 					allowedScale = 0;
 
 				result = result.setScale(allowedScale, RoundingMode.DOWN);
-				resultStr = result.stripTrailingZeros().toPlainString();
+				resultStr = result.toPlainString();
 
 				if (resultStr.contains("e") || resultStr.contains("E")) {
 					resultStr = result.toPlainString();
